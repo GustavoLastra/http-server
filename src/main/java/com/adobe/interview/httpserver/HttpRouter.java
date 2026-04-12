@@ -8,7 +8,7 @@ public class HttpRouter {
     private final StaticFileController staticFileController;
 
     public HttpRouter(Path documentRoot) {
-        this.staticFileController = new StaticFileController(documentRoot, new MimeTypeDetector());
+        this.staticFileController = new StaticFileController(documentRoot, new MimeTypeDetector(), new CacheUtil());
     }
 
     public HttpResponse route(HttpRequest request) throws IOException {

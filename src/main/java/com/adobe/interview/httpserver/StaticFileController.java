@@ -7,10 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -18,10 +14,12 @@ public class StaticFileController {
 
     private final Path documentRoot;
     private final MimeTypeDetector mimeTypeDetector;
+    private final CacheUtil cacheUtil;
 
-    public StaticFileController(Path documentRoot, MimeTypeDetector mimeTypeDetector) {
+    public StaticFileController(Path documentRoot, MimeTypeDetector mimeTypeDetector, CacheUtil cacheUtil) {
         this.documentRoot = documentRoot.toAbsolutePath().normalize();
         this.mimeTypeDetector = mimeTypeDetector;
+        this.cacheUtil = cacheUtil;
     }
 
     public HttpResponse handle(HttpRequest request) throws IOException {
@@ -55,11 +53,11 @@ public class StaticFileController {
         FileTime lastModifiedTime = Files.getLastModifiedTime(file);
         Instant lastModified = lastModifiedTime.toInstant();
 
-        String etag = generateETag(fileSize, lastModified);
-        String lastModifiedStr = formatHttpDate(lastModified);
+        String etag = cacheUtil.generateETag(fileSize, lastModified);
+        String lastModifiedStr = cacheUtil.formatHttpDate(lastModified);
 
         String ifMatch = request.getHeaders().get("If-Match");
-        if (ifMatch != null && !etagMatches(ifMatch, etag)) {
+        if (ifMatch != null && !cacheUtil.etagMatches(ifMatch, etag)) {
             HttpResponse response = new HttpResponse(412, "Precondition Failed");
             response.setHeader("ETag", etag);
             response.setBody("412 Precondition Failed");
@@ -67,14 +65,14 @@ public class StaticFileController {
         }
 
         String ifNoneMatch = request.getHeaders().get("If-None-Match");
-        if (ifNoneMatch != null && etagMatches(ifNoneMatch, etag)) {
+        if (ifNoneMatch != null && cacheUtil.etagMatches(ifNoneMatch, etag)) {
             return notModified(etag, lastModifiedStr);
         }
 
         // If-Modified-Since is only evaluated when If-None-Match is absent (RFC 7232 Section 6)
         if (ifNoneMatch == null) {
             String ifModifiedSince = request.getHeaders().get("If-Modified-Since");
-            if (ifModifiedSince != null && !modifiedSince(lastModified, ifModifiedSince)) {
+            if (ifModifiedSince != null && !cacheUtil.isModifiedSince(lastModified, ifModifiedSince)) {
                 return notModified(etag, lastModifiedStr);
             }
         }
@@ -99,38 +97,6 @@ public class StaticFileController {
         response.setHeader("ETag", etag);
         response.setHeader("Last-Modified", lastModified);
         return response;
-    }
-
-    static String generateETag(long fileSize, Instant lastModified) {
-        return "\"" + Long.toHexString(fileSize) + "-" + Long.toHexString(lastModified.toEpochMilli()) + "\"";
-    }
-
-    static String formatHttpDate(Instant instant) {
-        return DateTimeFormatter.RFC_1123_DATE_TIME.format(
-                ZonedDateTime.ofInstant(instant, ZoneOffset.UTC));
-    }
-
-    private boolean etagMatches(String headerValue, String etag) {
-        if (headerValue.trim().equals("*")) {
-            return true;
-        }
-        for (String candidate : headerValue.split(",")) {
-            if (candidate.trim().equals(etag)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean modifiedSince(Instant lastModified, String headerValue) {
-        try {
-            Instant since = ZonedDateTime.parse(headerValue.trim(), DateTimeFormatter.RFC_1123_DATE_TIME).toInstant();
-            // HTTP dates have second precision; truncate for comparison
-            return lastModified.truncatedTo(java.time.temporal.ChronoUnit.SECONDS)
-                    .isAfter(since.truncatedTo(java.time.temporal.ChronoUnit.SECONDS));
-        } catch (DateTimeParseException e) {
-            return true;
-        }
     }
 
     private HttpResponse serveDirectory(Path dir, String requestPath, String method) throws IOException {

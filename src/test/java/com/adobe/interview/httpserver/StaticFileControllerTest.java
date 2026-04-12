@@ -24,7 +24,7 @@ class StaticFileControllerTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        handler = new StaticFileController(tempDir, new MimeTypeDetector());
+        handler = new StaticFileController(tempDir, new MimeTypeDetector(), new CacheUtil());
 
         Files.writeString(tempDir.resolve("hello.txt"), "Hello, World!");
         Files.writeString(tempDir.resolve("page.html"), "<html><body>Hi</body></html>");
@@ -278,7 +278,7 @@ class StaticFileControllerTest {
     @Test
     void ifModifiedSinceWithFutureDateReturns304() throws IOException {
         Instant future = Instant.now().plus(1, ChronoUnit.DAYS);
-        String httpDate = StaticFileController.formatHttpDate(future);
+        String httpDate = new CacheUtil().formatHttpDate(future);
 
         HttpResponse response = handler.handle(
                 getWithHeaders("/hello.txt", Map.of("If-Modified-Since", httpDate)));
@@ -289,7 +289,7 @@ class StaticFileControllerTest {
     @Test
     void ifModifiedSinceWithPastDateReturns200() throws IOException {
         Instant past = Instant.parse("2000-01-01T00:00:00Z");
-        String httpDate = StaticFileController.formatHttpDate(past);
+        String httpDate = new CacheUtil().formatHttpDate(past);
 
         HttpResponse response = handler.handle(
                 getWithHeaders("/hello.txt", Map.of("If-Modified-Since", httpDate)));
@@ -324,7 +324,7 @@ class StaticFileControllerTest {
     @Test
     void nonMatchingIfNoneMatchSkipsIfModifiedSince() throws IOException {
         Instant future = Instant.now().plus(1, ChronoUnit.DAYS);
-        String httpDate = StaticFileController.formatHttpDate(future);
+        String httpDate = new CacheUtil().formatHttpDate(future);
 
         // ETag doesn't match → 200, regardless of If-Modified-Since
         HttpResponse response = handler.handle(
