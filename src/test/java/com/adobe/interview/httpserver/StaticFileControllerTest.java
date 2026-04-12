@@ -15,16 +15,16 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class StaticFileHandlerTest {
+class StaticFileControllerTest {
 
     @TempDir
     Path tempDir;
 
-    private StaticFileHandler handler;
+    private StaticFileController handler;
 
     @BeforeEach
     void setUp() throws IOException {
-        handler = new StaticFileHandler(tempDir);
+        handler = new StaticFileController(tempDir);
 
         Files.writeString(tempDir.resolve("hello.txt"), "Hello, World!");
         Files.writeString(tempDir.resolve("page.html"), "<html><body>Hi</body></html>");
@@ -278,7 +278,7 @@ class StaticFileHandlerTest {
     @Test
     void ifModifiedSinceWithFutureDateReturns304() throws IOException {
         Instant future = Instant.now().plus(1, ChronoUnit.DAYS);
-        String httpDate = StaticFileHandler.formatHttpDate(future);
+        String httpDate = StaticFileController.formatHttpDate(future);
 
         HttpResponse response = handler.handle(
                 getWithHeaders("/hello.txt", Map.of("If-Modified-Since", httpDate)));
@@ -289,7 +289,7 @@ class StaticFileHandlerTest {
     @Test
     void ifModifiedSinceWithPastDateReturns200() throws IOException {
         Instant past = Instant.parse("2000-01-01T00:00:00Z");
-        String httpDate = StaticFileHandler.formatHttpDate(past);
+        String httpDate = StaticFileController.formatHttpDate(past);
 
         HttpResponse response = handler.handle(
                 getWithHeaders("/hello.txt", Map.of("If-Modified-Since", httpDate)));
@@ -324,7 +324,7 @@ class StaticFileHandlerTest {
     @Test
     void nonMatchingIfNoneMatchSkipsIfModifiedSince() throws IOException {
         Instant future = Instant.now().plus(1, ChronoUnit.DAYS);
-        String httpDate = StaticFileHandler.formatHttpDate(future);
+        String httpDate = StaticFileController.formatHttpDate(future);
 
         // ETag doesn't match → 200, regardless of If-Modified-Since
         HttpResponse response = handler.handle(

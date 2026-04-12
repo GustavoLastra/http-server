@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public class StaticFileHandler {
+public class StaticFileController {
 
     private static final Map<String, String> MIME_TYPES = Map.ofEntries(
             Map.entry(".html", "text/html"),
@@ -38,7 +38,7 @@ public class StaticFileHandler {
 
     private final Path documentRoot;
 
-    public StaticFileHandler(Path documentRoot) {
+    public StaticFileController(Path documentRoot) {
         this.documentRoot = documentRoot.toAbsolutePath().normalize();
     }
 
