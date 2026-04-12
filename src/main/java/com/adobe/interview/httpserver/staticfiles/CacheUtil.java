@@ -1,4 +1,7 @@
-package com.adobe.interview.httpserver;
+package com.adobe.interview.httpserver.staticfiles;
+
+import com.adobe.interview.httpserver.http.HttpRequest;
+import com.adobe.interview.httpserver.http.HttpResponse;
 
 import java.time.Instant;
 import java.time.ZoneOffset;

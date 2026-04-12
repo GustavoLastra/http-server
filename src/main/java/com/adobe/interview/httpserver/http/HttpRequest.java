@@ -1,4 +1,4 @@
-package com.adobe.interview.httpserver;
+package com.adobe.interview.httpserver.http;
 
 import java.util.Collections;
 import java.util.Map;

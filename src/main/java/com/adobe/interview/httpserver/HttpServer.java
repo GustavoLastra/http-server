@@ -1,5 +1,9 @@
 package com.adobe.interview.httpserver;
 
+import com.adobe.interview.httpserver.http.HttpRequest;
+import com.adobe.interview.httpserver.http.HttpResponse;
+import com.adobe.interview.httpserver.http.HttpRequestParser;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;

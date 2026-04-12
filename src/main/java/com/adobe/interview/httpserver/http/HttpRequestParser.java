@@ -1,4 +1,4 @@
-package com.adobe.interview.httpserver;
+package com.adobe.interview.httpserver.http;
 
 import java.io.BufferedReader;
 import java.io.IOException;

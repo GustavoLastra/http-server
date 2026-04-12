@@ -1,4 +1,7 @@
-package com.adobe.interview.httpserver;
+package com.adobe.interview.httpserver.http;
+
+import com.adobe.interview.httpserver.http.HttpRequest;
+import com.adobe.interview.httpserver.http.HttpResponse;
 
 import org.junit.jupiter.api.Test;
 
