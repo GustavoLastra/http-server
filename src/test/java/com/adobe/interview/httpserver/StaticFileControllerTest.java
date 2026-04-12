@@ -24,7 +24,8 @@ class StaticFileControllerTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        handler = new StaticFileController(tempDir, new MimeTypeDetector(), new CacheUtil(), new DirectoryListingService());
+        StaticFileService fileService = new StaticFileService(tempDir, new MimeTypeDetector(), new CacheUtil());
+        handler = new StaticFileController(fileService, new DirectoryListingService());
 
         Files.writeString(tempDir.resolve("hello.txt"), "Hello, World!");
         Files.writeString(tempDir.resolve("page.html"), "<html><body>Hi</body></html>");
