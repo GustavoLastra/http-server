@@ -14,13 +14,13 @@ public class HttpServer {
     private static final int KEEP_ALIVE_TIMEOUT_MS = 30_000;
 
     private final int port;
-    private final StaticFileHandler fileHandler;
+    private final HttpRouter router;
     private volatile boolean running;
     private ServerSocket serverSocket;
 
     public HttpServer(int port, Path documentRoot) {
         this.port = port;
-        this.fileHandler = new StaticFileHandler(documentRoot);
+        this.router = new HttpRouter(documentRoot);
     }
 
     public int getPort() {
@@ -76,7 +76,7 @@ public class HttpServer {
                 System.out.println("Received: " + request);
 
                 keepAlive = isKeepAlive(request);
-                HttpResponse response = fileHandler.handle(request);
+                HttpResponse response = router.route(request);
                 response.setHeader("Connection", keepAlive ? "keep-alive" : "close");
                 response.writeTo(out);
             }
