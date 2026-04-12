@@ -12,34 +12,16 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
 public class StaticFileController {
 
-    private static final Map<String, String> MIME_TYPES = Map.ofEntries(
-            Map.entry(".html", "text/html"),
-            Map.entry(".htm", "text/html"),
-            Map.entry(".css", "text/css"),
-            Map.entry(".js", "application/javascript"),
-            Map.entry(".json", "application/json"),
-            Map.entry(".xml", "application/xml"),
-            Map.entry(".txt", "text/plain"),
-            Map.entry(".csv", "text/csv"),
-            Map.entry(".png", "image/png"),
-            Map.entry(".jpg", "image/jpeg"),
-            Map.entry(".jpeg", "image/jpeg"),
-            Map.entry(".gif", "image/gif"),
-            Map.entry(".svg", "image/svg+xml"),
-            Map.entry(".ico", "image/x-icon"),
-            Map.entry(".pdf", "application/pdf"),
-            Map.entry(".zip", "application/zip")
-    );
-
     private final Path documentRoot;
+    private final MimeTypeDetector mimeTypeDetector;
 
-    public StaticFileController(Path documentRoot) {
+    public StaticFileController(Path documentRoot, MimeTypeDetector mimeTypeDetector) {
         this.documentRoot = documentRoot.toAbsolutePath().normalize();
+        this.mimeTypeDetector = mimeTypeDetector;
     }
 
     public HttpResponse handle(HttpRequest request) throws IOException {
@@ -98,7 +80,7 @@ public class StaticFileController {
         }
 
         byte[] content = Files.readAllBytes(file);
-        String contentType = detectContentType(file.getFileName().toString());
+        String contentType = mimeTypeDetector.detect(file.getFileName().toString());
 
         HttpResponse response = new HttpResponse(200, "OK");
         response.setHeader("Content-Type", contentType);
@@ -198,15 +180,6 @@ public class StaticFileController {
         response.setHeader("Content-Type", "text/plain");
         response.setBody("404 Not Found");
         return response;
-    }
-
-    private String detectContentType(String filename) {
-        int dot = filename.lastIndexOf('.');
-        if (dot >= 0) {
-            String ext = filename.substring(dot).toLowerCase();
-            return MIME_TYPES.getOrDefault(ext, "application/octet-stream");
-        }
-        return "application/octet-stream";
     }
 
     private static String escapeHtml(String text) {
