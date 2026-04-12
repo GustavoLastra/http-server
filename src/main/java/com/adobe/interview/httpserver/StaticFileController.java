@@ -7,19 +7,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
-import java.util.List;
-import java.util.stream.Stream;
 
 public class StaticFileController {
 
     private final Path documentRoot;
     private final MimeTypeDetector mimeTypeDetector;
     private final CacheUtil cacheUtil;
+    private final DirectoryListingService directoryListingService;
 
-    public StaticFileController(Path documentRoot, MimeTypeDetector mimeTypeDetector, CacheUtil cacheUtil) {
+    public StaticFileController(Path documentRoot, MimeTypeDetector mimeTypeDetector, CacheUtil cacheUtil, DirectoryListingService directoryListingService) {
         this.documentRoot = documentRoot.toAbsolutePath().normalize();
         this.mimeTypeDetector = mimeTypeDetector;
         this.cacheUtil = cacheUtil;
+        this.directoryListingService = directoryListingService;
     }
 
     public HttpResponse handle(HttpRequest request) throws IOException {
@@ -41,7 +41,7 @@ public class StaticFileController {
         if (Files.isRegularFile(resolved)) {
             return serveFile(resolved, request);
         } else if (Files.isDirectory(resolved)) {
-            return serveDirectory(resolved, decodedPath, method);
+            return directoryListingService.serveDirectory(resolved, decodedPath, method);
         } else {
             return notFound();
         }
@@ -99,59 +99,10 @@ public class StaticFileController {
         return response;
     }
 
-    private HttpResponse serveDirectory(Path dir, String requestPath, String method) throws IOException {
-        String normalizedPath = requestPath.endsWith("/") ? requestPath : requestPath + "/";
-
-        List<Path> entries;
-        try (Stream<Path> stream = Files.list(dir)) {
-            entries = stream.sorted().toList();
-        }
-
-        StringBuilder html = new StringBuilder();
-        html.append("<!DOCTYPE html>\n<html>\n<head><title>Index of ")
-                .append(escapeHtml(normalizedPath))
-                .append("</title></head>\n<body>\n");
-        html.append("<h1>Index of ").append(escapeHtml(normalizedPath)).append("</h1>\n");
-        html.append("<ul>\n");
-
-        if (!normalizedPath.equals("/")) {
-            html.append("<li><a href=\"../\">../</a></li>\n");
-        }
-
-        for (Path entry : entries) {
-            String name = entry.getFileName().toString();
-            if (Files.isDirectory(entry)) {
-                html.append("<li><a href=\"").append(escapeHtml(name)).append("/\">")
-                        .append(escapeHtml(name)).append("/</a></li>\n");
-            } else {
-                html.append("<li><a href=\"").append(escapeHtml(name)).append("\">")
-                        .append(escapeHtml(name)).append("</a></li>\n");
-            }
-        }
-
-        html.append("</ul>\n</body>\n</html>\n");
-
-        HttpResponse response = new HttpResponse(200, "OK");
-        response.setHeader("Content-Type", "text/html; charset=utf-8");
-        response.setBody(html.toString());
-
-        if (method.equals("HEAD")) {
-            response.clearBodyKeepContentLength();
-        }
-        return response;
-    }
-
     private HttpResponse notFound() {
         HttpResponse response = new HttpResponse(404, "Not Found");
         response.setHeader("Content-Type", "text/plain");
         response.setBody("404 Not Found");
         return response;
-    }
-
-    private static String escapeHtml(String text) {
-        return text.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;");
     }
 }
