@@ -1,0 +1,16 @@
+meta {
+  name: GET subdirectory listing
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/subdir/
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.headers["content-type"]: contains text/html
+}

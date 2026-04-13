@@ -1,0 +1,19 @@
+meta {
+  name: GET file - 412 Precondition Failed (If-Match mismatch)
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/hello.txt
+  body: none
+  auth: none
+}
+
+headers {
+  If-Match: "does-not-match"
+}
+
+assert {
+  res.status: eq 412
+}

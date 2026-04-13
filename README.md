@@ -49,7 +49,7 @@ java -jar httpserver.jar 3000 /var/www
 mvn clean package
 
 # Start the server
-java -jar target/httpserver-1.0-SNAPSHOT.jar 8080 /path/to/files
+java -jar target/httpserver-1.0-SNAPSHOT.jar 8080 testfiles
 ```
 
 ### With Docker
@@ -59,7 +59,7 @@ java -jar target/httpserver-1.0-SNAPSHOT.jar 8080 /path/to/files
 docker build -t httpserver .
 
 # Run the container, mounting a local directory as the document root
-docker run -p 8080:8080 -v /path/to/files:/srv/www httpserver
+docker run -p 8080:8080 -v $(pwd)/testfiles:/srv/www httpserver
 ```
 
 The container defaults to port 8080 and serves from `/srv/www`. Mount your content there with `-v`.

@@ -1,0 +1,16 @@
+meta {
+  name: HEAD file
+  type: http
+  seq: 4
+}
+
+head {
+  url: {{baseUrl}}/hello.txt
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.headers["content-length"]: isDefined
+}

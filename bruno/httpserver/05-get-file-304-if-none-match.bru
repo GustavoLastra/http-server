@@ -1,0 +1,19 @@
+meta {
+  name: GET file - 304 Not Modified (If-None-Match)
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/hello.txt
+  body: none
+  auth: none
+}
+
+headers {
+  If-None-Match: *
+}
+
+assert {
+  res.status: eq 304
+}

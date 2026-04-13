@@ -1,0 +1,16 @@
+meta {
+  name: POST - 405 Method Not Allowed
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/hello.txt
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 405
+  res.headers["allow"]: eq GET, HEAD
+}

@@ -1,0 +1,19 @@
+meta {
+  name: GET file - 304 Not Modified (If-Modified-Since)
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/hello.txt
+  body: none
+  auth: none
+}
+
+headers {
+  If-Modified-Since: Sun, 01 Jan 2099 00:00:00 GMT
+}
+
+assert {
+  res.status: eq 304
+}

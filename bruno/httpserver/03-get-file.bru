@@ -1,0 +1,17 @@
+meta {
+  name: GET file
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/hello.txt
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.headers["etag"]: isDefined
+  res.headers["last-modified"]: isDefined
+}
