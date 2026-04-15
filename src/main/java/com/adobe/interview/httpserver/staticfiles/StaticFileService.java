@@ -1,6 +1,5 @@
 package com.adobe.interview.httpserver.staticfiles;
 
-import com.adobe.interview.httpserver.http.HttpRequest;
 import com.adobe.interview.httpserver.http.HttpResponse;
 
 import java.io.IOException;
@@ -10,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
+import java.util.Map;
 
 public class StaticFileService {
 
@@ -33,8 +33,7 @@ public class StaticFileService {
         return resolved.startsWith(documentRoot) ? resolved : null;
     }
 
-    public HttpResponse serveFile(Path file, HttpRequest request) throws IOException {
-        String method = request.getMethod();
+    public HttpResponse serveFile(Path file, boolean isHeadMethod, Map<String, String> headers) throws IOException {
         long fileSize = Files.size(file);
         FileTime lastModifiedTime = Files.getLastModifiedTime(file);
         Instant lastModified = lastModifiedTime.toInstant();
@@ -42,7 +41,7 @@ public class StaticFileService {
         String etag = cacheUtil.generateETag(fileSize, lastModified);
         String lastModifiedStr = cacheUtil.formatHttpDate(lastModified);
 
-        String ifMatch = request.getHeaders().get("If-Match");
+        String ifMatch = headers.get("If-Match");
         if (ifMatch != null && !cacheUtil.etagMatches(ifMatch, etag)) {
             HttpResponse response = new HttpResponse(412, "Precondition Failed");
             response.setHeader("ETag", etag);
@@ -50,31 +49,32 @@ public class StaticFileService {
             return response;
         }
 
-        String ifNoneMatch = request.getHeaders().get("If-None-Match");
+        String ifNoneMatch = headers.get("If-None-Match");
         if (ifNoneMatch != null && cacheUtil.etagMatches(ifNoneMatch, etag)) {
             return notModified(etag, lastModifiedStr);
         }
 
         // If-Modified-Since is only evaluated when If-None-Match is absent (RFC 7232 Section 6)
         if (ifNoneMatch == null) {
-            String ifModifiedSince = request.getHeaders().get("If-Modified-Since");
+            String ifModifiedSince = headers.get("If-Modified-Since");
             if (ifModifiedSince != null && !cacheUtil.isModifiedSince(lastModified, ifModifiedSince)) {
                 return notModified(etag, lastModifiedStr);
             }
         }
 
-        byte[] content = Files.readAllBytes(file);
         String contentType = mimeTypeDetector.detect(file.getFileName().toString());
 
         HttpResponse response = new HttpResponse(200, "OK");
         response.setHeader("Content-Type", contentType);
         response.setHeader("ETag", etag);
         response.setHeader("Last-Modified", lastModifiedStr);
-        response.setBody(content);
 
-        if (method.equals("HEAD")) {
-            response.clearBodyKeepContentLength();
+        if (isHeadMethod) {
+            response.setHeader("Content-Length", String.valueOf(fileSize));
+        } else {
+            response.setBody(Files.readAllBytes(file));
         }
+
         return response;
     }
 

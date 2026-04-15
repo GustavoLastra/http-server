@@ -19,22 +19,24 @@ public class StaticFileController {
 
     public HttpResponse handle(HttpRequest request) throws IOException {
         String method = request.getMethod();
-        if (!method.equals("GET") && !method.equals("HEAD")) {
+        boolean isHeadMethod = method.equals("HEAD");
+        boolean isMethodAllowed = isHeadMethod || method.equals("GET");
+        if (!isMethodAllowed) {
             HttpResponse response = new HttpResponse(405, "Method Not Allowed");
             response.setHeader("Allow", "GET, HEAD");
             response.setBody("405 Method Not Allowed");
             return response;
         }
 
-        Path resolved = fileService.resolveSafePath(request.getPath());
-        if (resolved == null) {
+        Path safePath = fileService.resolveSafePath(request.getPath());
+        if (safePath == null) {
             return fileService.notFound();
         }
 
-        if (Files.isRegularFile(resolved)) {
-            return fileService.serveFile(resolved, request);
-        } else if (Files.isDirectory(resolved)) {
-            return directoryListingService.serveDirectory(resolved, request.getPath(), method);
+        if (Files.isRegularFile(safePath)) {
+            return fileService.serveFile(safePath, isHeadMethod, request.getHeaders());
+        } else if (Files.isDirectory(safePath)) {
+            return directoryListingService.serveDirectory(safePath, request.getPath(), isHeadMethod);
         } else {
             return fileService.notFound();
         }

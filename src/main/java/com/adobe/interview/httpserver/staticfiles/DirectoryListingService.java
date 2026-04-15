@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 
 public class DirectoryListingService {
 
-    public HttpResponse serveDirectory(Path dir, String requestPath, String method) throws IOException {
+    public HttpResponse serveDirectory(Path dir, String requestPath, boolean isHeadMethod) throws IOException {
         String normalizedPath = requestPath.endsWith("/") ? requestPath : requestPath + "/";
 
         List<Path> entries;
@@ -45,11 +45,13 @@ public class DirectoryListingService {
 
         HttpResponse response = new HttpResponse(200, "OK");
         response.setHeader("Content-Type", "text/html; charset=utf-8");
-        response.setBody(html.toString());
-
-        if (method.equals("HEAD")) {
-            response.clearBodyKeepContentLength();
+        if (isHeadMethod) {
+            byte[] htmlBytes = html.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            response.setHeader("Content-Length", String.valueOf(htmlBytes.length));
+        } else {
+            response.setBody(html.toString());
         }
+
         return response;
     }
 
