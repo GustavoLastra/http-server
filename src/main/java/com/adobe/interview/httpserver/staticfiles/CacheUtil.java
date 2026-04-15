@@ -1,8 +1,5 @@
 package com.adobe.interview.httpserver.staticfiles;
 
-import com.adobe.interview.httpserver.http.HttpRequest;
-import com.adobe.interview.httpserver.http.HttpResponse;
-
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -21,7 +18,7 @@ public class CacheUtil {
                 ZonedDateTime.ofInstant(instant, ZoneOffset.UTC));
     }
 
-    public boolean etagMatches(String headerValue, String etag) {
+    public boolean isCurrentVersion(String headerValue, String etag) {
         if (headerValue.trim().equals("*")) {
             return true;
         }

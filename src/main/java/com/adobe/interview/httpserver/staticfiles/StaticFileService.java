@@ -41,16 +41,18 @@ public class StaticFileService {
         String etag = cacheUtil.generateETag(fileSize, lastModified);
         String lastModifiedStr = cacheUtil.formatHttpDate(lastModified);
 
-        String ifMatch = headers.get("If-Match");
-        if (ifMatch != null && !cacheUtil.etagMatches(ifMatch, etag)) {
+        String ifMatch = headers.get("If-Match");  //send if unchanged
+        boolean isCacheStale = ifMatch != null && !cacheUtil.isCurrentVersion(ifMatch, etag);
+        if (isCacheStale) {
             HttpResponse response = new HttpResponse(412, "Precondition Failed");
             response.setHeader("ETag", etag);
             response.setBody("412 Precondition Failed");
             return response;
         }
 
-        String ifNoneMatch = headers.get("If-None-Match");
-        if (ifNoneMatch != null && cacheUtil.etagMatches(ifNoneMatch, etag)) {
+        String ifNoneMatch = headers.get("If-None-Match"); //send if changed
+        boolean isCacheFresh = ifNoneMatch != null && cacheUtil.isCurrentVersion(ifNoneMatch, etag);
+        if (isCacheFresh) {
             return notModified(etag, lastModifiedStr);
         }
 

@@ -1,8 +1,5 @@
 package com.adobe.interview.httpserver.staticfiles;
 
-import com.adobe.interview.httpserver.http.HttpRequest;
-import com.adobe.interview.httpserver.http.HttpResponse;
-
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -39,23 +36,23 @@ class CacheUtilTest {
     }
 
     @Test
-    void etagMatchesExact() {
-        assertTrue(cacheUtil.etagMatches("\"abc\"", "\"abc\""));
+    void isCurrentVersionExact() {
+        assertTrue(cacheUtil.isCurrentVersion("\"abc\"", "\"abc\""));
     }
 
     @Test
-    void etagMatchesWildcard() {
-        assertTrue(cacheUtil.etagMatches("*", "\"abc\""));
+    void isCurrentVersionWildcard() {
+        assertTrue(cacheUtil.isCurrentVersion("*", "\"abc\""));
     }
 
     @Test
-    void etagMatchesOneOfMany() {
-        assertTrue(cacheUtil.etagMatches("\"x\", \"abc\", \"y\"", "\"abc\""));
+    void isCurrentVersionOneOfMany() {
+        assertTrue(cacheUtil.isCurrentVersion("\"x\", \"abc\", \"y\"", "\"abc\""));
     }
 
     @Test
-    void etagDoesNotMatchWhenDifferent() {
-        assertFalse(cacheUtil.etagMatches("\"other\"", "\"abc\""));
+    void isCurrentVersionReturnsFalseWhenDifferent() {
+        assertFalse(cacheUtil.isCurrentVersion("\"other\"", "\"abc\""));
     }
 
     @Test
