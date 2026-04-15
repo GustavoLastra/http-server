@@ -80,3 +80,20 @@ src/main/java/com/adobe/interview/httpserver/
   HttpResponse.java        - Response model with writeTo(OutputStream)
   StaticFileHandler.java   - Resolves paths, serves files and directory listings
 ```
+
+## Bruno Collection
+
+Open Bruno using the `bruno` folder as the collection root (not the repository root and not `bruno/httpserver`).
+
+```bash
+# from the repository root
+open bruno
+```
+
+Then in Bruno:
+- Open Collection -> select `bruno`
+- Choose environment `local`
+- Run requests from `bruno/httpserver`
+
+Environment file location:
+- `bruno/environments/local.bru`
