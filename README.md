@@ -12,9 +12,21 @@ A lightweight static file server written in Java with no external runtime depend
 
 ## Prerequisites
 
+- [mise](https://mise.jdx.dev/) (recommended for toolchain management)
+- Docker (for containerized usage)
+
+### Toolchain setup with mise
+
+This project includes a `.mise.toml` that pins Java and Maven versions. With mise installed:
+
+```bash
+mise install
+```
+
+This will install Java 21 (Temurin) and Maven 3.9 automatically. Without mise, install them manually:
+
 - Java 21
 - Maven 3.9+
-- Docker (for containerized usage)
 
 ## Command-Line Parameters
 
@@ -74,11 +86,18 @@ mvn test
 
 ```
 src/main/java/com/adobe/interview/httpserver/
-  HttpServer.java          - Entry point; binds the port and accepts connections
-  HttpRequest.java         - Immutable model for a parsed HTTP request
-  HttpRequestParser.java   - Parses an InputStream into an HttpRequest
-  HttpResponse.java        - Response model with writeTo(OutputStream)
-  StaticFileHandler.java   - Resolves paths, serves files and directory listings
+  HttpServer.java                        - Entry point; binds the port, accepts connections, manages keep-alive loop
+  HttpRouter.java                        - Routes requests to the appropriate handler
+  http/
+    HttpRequest.java                     - Immutable model for a parsed HTTP request
+    HttpRequestParser.java               - Parses an InputStream into an HttpRequest
+    HttpResponse.java                    - Response model with writeTo(OutputStream)
+  staticfiles/
+    StaticFileController.java            - Handles static file and directory listing requests
+    StaticFileService.java               - Resolves paths and reads file content
+    DirectoryListingService.java         - Generates HTML directory listings
+    MimeTypeDetector.java                - Detects Content-Type from file extension
+    CacheUtil.java                       - ETag and cache validation helpers
 ```
 
 ## Bruno Collection
