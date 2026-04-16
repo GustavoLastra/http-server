@@ -100,12 +100,22 @@ src/main/java/com/adobe/interview/httpserver/
     CacheUtil.java                       - ETag and cache validation helpers
 ```
 
+## Known Issues
+
+Issues detected during code review:
+
+- **Files read for HEAD requests** — `serveFile()` read the full body even for HEAD requests. Fixed in commit `80b5c4c`.
+- **No layered architecture** — `StaticFileHandler` was a god class. Initial design lacked class separation across layers (controller / service / utility), reducing reusability and testability from the start.
+- **No client socket timeout** — test sockets have no `setSoTimeout`. If the server is busy, the test hangs indefinitely.
+- **Keep-alive blocks all other connections** — the server is single-threaded, so one open keep-alive connection blocks the `accept` loop for up to 30 seconds, starving other clients.
+- **Test teardown join too short** — after `stop()`, the test only waits 2 seconds for the server thread to die.
+- **Timestamp precision** — 304 Not Modified tests compare `Instant.now()` against filesystem timestamps. Some platforms only have 1–2 second precision, so the comparison can flip non-deterministically.
+
 ## Bruno Collection
 
 Open Bruno using the `bruno` folder as the collection root (not the repository root and not `bruno/httpserver`).
 
 ```bash
-# from the repository root
 open bruno
 ```
 
