@@ -9,6 +9,7 @@ import java.time.temporal.ChronoUnit;
 
 public class CacheUtil {
 
+    //Observation: if there is change in the file inside a second then the last modified time will be same and the etag will be same, so we can treat it as not modified.
     public String generateETag(long fileSize, Instant lastModified) {
         return "\"" + Long.toHexString(fileSize) + "-" + Long.toHexString(lastModified.toEpochMilli()) + "\"";
     }

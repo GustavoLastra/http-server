@@ -110,6 +110,7 @@ Issues detected during code review:
 - **Keep-alive blocks all other connections** — the server is single-threaded, so one open keep-alive connection blocks the `accept` loop for up to 30 seconds, starving other clients.
 - **Test teardown join too short** — after `stop()`, the test only waits 2 seconds for the server thread to die.
 - **Timestamp precision** — 304 Not Modified tests compare `Instant.now()` against filesystem timestamps. Some platforms only have 1–2 second precision, so the comparison can flip non-deterministically.
+  - _Observation:_ if a file changes within the same second, `Last-Modified` and the ETag (derived from size + last modified time) will both be identical to the previous values. The server will incorrectly treat the file as unmodified and return `304`, serving stale content to the client. A content-hash based ETag (e.g. MD5 of file bytes) would detect the change regardless of timestamp precision.
 
 ## Bruno Collection
 
